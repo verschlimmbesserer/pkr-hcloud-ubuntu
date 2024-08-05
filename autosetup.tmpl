@@ -1,0 +1,24 @@
+# unkown
+DRIVE1 /dev/sda
+
+HOSTNAME Ubuntu-2204-jammy-amd64-base
+HOSTNAME format("cis-%s-%s",image,size)
+
+#IPV4_ONLY no
+
+UEFI
+PART /boot  ext3     512M
+PART lvm    vg0       all
+
+%{ if contains(keys(part), size) }
+%{for lv_name, lv_config in part[size] ~}
+LV vg0   ${lv_name}   ${lv_config.mountpoint}     ${lv_config.filesystem}         ${lv_config.size}
+%{ endfor }
+%{ else }
+%{for lv_name, lv_config in part["default"] ~}
+LV vg0   ${lv_name}   ${lv_config.mountpoint}     ${lv_config.filesystem}         ${lv_config.size}
+%{ endfor }
+%{ endif }
+
+
+IMAGE /root/.oldroot/nfs/install/../images/${img[image]}
